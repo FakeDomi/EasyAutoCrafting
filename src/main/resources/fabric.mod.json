@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "easyautocrafting",
+  "version": "${version}",
+
+  "name": "EasyAutoCrafting",
+  "description": "Vanilla client compatible automatic crafting.",
+  "authors": [
+    "Domi"
+  ],
+  "contact": {
+    "homepage": "https://www.curseforge.com/minecraft/mc-mods/easyautocrafting",
+    "sources": "https://github.com/FakeDomi/EasyAutoCrafting",
+    "issues": "https://github.com/FakeDomi/EasyAutoCrafting/issues"
+  },
+
+  "license": "MIT",
+  "icon": "assets/eac/icon.png",
+
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+    ]
+  },
+  "mixins": [
+    "eac.mixins.json"
+  ],
+
+  "depends": {
+    "fabricloader": "*",
+    "minecraft": ">=1.16"
+  }
+}

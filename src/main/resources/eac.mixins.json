@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "re.domi.easyautocrafting.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+    "DropperBlockMixin",
+    "DropperBlockEntityMixin"
+  ],
+  "client": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
