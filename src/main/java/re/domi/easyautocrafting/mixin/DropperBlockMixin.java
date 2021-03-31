@@ -1,9 +1,6 @@
 package re.domi.easyautocrafting.mixin;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.DispenserBlock;
-import net.minecraft.block.DropperBlock;
+import net.minecraft.block.*;
 import net.minecraft.block.entity.DropperBlockEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
@@ -55,8 +52,10 @@ public class DropperBlockMixin extends DispenserBlock
     @Override
     public void neighborUpdate(BlockState state, World world, BlockPos pos, Block block, BlockPos fromPos, boolean notify)
     {
-        //noinspection ConstantConditions
-        world.getBlockEntity(pos).markDirty();
+        if (block == Blocks.CRAFTING_TABLE || world.getBlockState(fromPos).getBlock() == Blocks.CRAFTING_TABLE)
+        {
+            world.updateComparators(pos, state.getBlock());
+        }
 
         super.neighborUpdate(state, world, pos, block, fromPos, notify);
     }

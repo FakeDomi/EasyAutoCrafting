@@ -20,6 +20,7 @@
   "environment": "*",
   "entrypoints": {
     "main": [
+      "re.domi.easyautocrafting.EasyAutoCrafting"
     ]
   },
   "mixins": [
