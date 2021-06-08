@@ -2,6 +2,7 @@ package re.domi.easyautocrafting;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.impl.event.lifecycle.LoadedChunksCache;
 
 public class EasyAutoCrafting implements ModInitializer
 {
@@ -12,7 +13,10 @@ public class EasyAutoCrafting implements ModInitializer
         {
             if (success)
             {
-                server.getWorlds().forEach(w -> w.blockEntities.stream().filter(DropperRecipeCache.class::isInstance).forEach(d -> ((DropperRecipeCache)d).set(null)));
+                server.getWorlds().forEach(
+                    w -> ((LoadedChunksCache)w).fabric_getLoadedChunks().forEach(
+                        c -> c.getBlockEntities().values().stream().filter(DropperRecipeCache.class::isInstance).forEach(
+                            d -> ((DropperRecipeCache)d).set(null))));
             }
         });
     }
