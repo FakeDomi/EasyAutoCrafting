@@ -13,7 +13,7 @@ public class InventoryUtil
 {
     public static boolean itemsEqual(ItemStack first, ItemStack second)
     {
-        return ItemStack.areItemsEqual(first, second) && ItemStack.areTagsEqual(first, second);
+        return ItemStack.areItemsEqual(first, second) && ItemStack.areNbtEqual(first, second);
     }
 
     public static ItemStack singleItemOf(ItemStack stack)
