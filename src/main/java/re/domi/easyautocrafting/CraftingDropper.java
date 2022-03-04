@@ -70,7 +70,7 @@ public class CraftingDropper
 
             addToMergedItemStackList(craftingResults, recipe.craft(craftingInventory));
 
-            for (ItemStack remainingStack : recipe.getRemainder(craftingInventory))
+            for (ItemStack remainingStack : recipe.getRemainingStacks(craftingInventory))
             {
                 addToMergedItemStackList(craftingResults, remainingStack);
             }
