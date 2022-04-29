@@ -211,4 +211,15 @@ public class InventoryUtil
 
         return copy;
     }
+	public static boolean compareList(List<ItemStack> preList, List<ItemStack> afterList)
+	{
+		if(preList == null || preList.size() != afterList.size()){
+			return false;
+		}
+		for (int i =0; i<preList.size(); i++){
+			if(!preList.get(i).isItemEqual(afterList.get(i)))
+				return false;
+		}
+		return true;
+	}
 }

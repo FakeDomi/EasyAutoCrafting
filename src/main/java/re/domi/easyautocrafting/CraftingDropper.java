@@ -59,7 +59,11 @@ public class CraftingDropper
 
         if (recipe == null || !recipe.matches(craftingInventory, world))
         {
-            recipe = world.getRecipeManager().getFirstMatch(RecipeType.CRAFTING, craftingInventory, world).orElse(null);
+			DropperItemsCache itemsCache = (DropperItemsCache) dropper;
+			if(!InventoryUtil.compareList(itemsCache.getCachedList(), ingredients)){
+				recipe = world.getRecipeManager().getFirstMatch(RecipeType.CRAFTING, craftingInventory, world).orElse(null);
+				itemsCache.setCachedList(List.copyOf(ingredients));
+			}
         }
 
         if (recipe != null)
