@@ -17,12 +17,19 @@ public class EasyAutoCrafting implements ModInitializer
             {
                 server.getWorlds().forEach(
                     w -> ((LoadedChunksCache)w).fabric_getLoadedChunks().forEach(
-                        c -> c.getBlockEntities().values().stream().filter(DropperRecipeCache.class::isInstance).forEach(
-                            d -> {
-	                            ((DropperRecipeCache) d).set(null);
-	                            ((DropperItemsCache) d).setCachedList(new ArrayList<>(9));
-                            }
-                        )));
+                        c -> {
+	                        c.getBlockEntities().values().stream().filter(DropperRecipeCache.class::isInstance).forEach(
+		                        d -> {
+			                        ((DropperRecipeCache) d).set(null);
+		                        }
+	                        );
+	                        c.getBlockEntities().values().stream().filter(DropperItemsCache.class::isInstance).forEach(
+		                        d -> {
+			                        ((DropperItemsCache) d).setCachedList(new ArrayList<>(9));
+		                        }
+	                        );
+                        }
+						));
             }
         });
     }
