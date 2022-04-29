@@ -9,12 +9,16 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import org.spongepowered.asm.mixin.Mixin;
 import re.domi.easyautocrafting.CraftingDropper;
+import re.domi.easyautocrafting.DropperItemsCache;
 import re.domi.easyautocrafting.DropperRecipeCache;
 
+import java.util.List;
+
 @Mixin(DropperBlockEntity.class)
-public class DropperBlockEntityMixin extends DispenserBlockEntity implements DropperRecipeCache
+public class DropperBlockEntityMixin extends DispenserBlockEntity implements DropperRecipeCache, DropperItemsCache
 {
     private CraftingRecipe cachedRecipe;
+	private List<ItemStack> cachedList;
 
     public DropperBlockEntityMixin(BlockPos pos, BlockState state)
     {
@@ -38,9 +42,21 @@ public class DropperBlockEntityMixin extends DispenserBlockEntity implements Dro
         return this.cachedRecipe;
     }
 
+	@Override
+	public void set(CraftingRecipe r)
+	{
+		this.cachedRecipe = r;
+	}
+
+	@Override
+	public List<ItemStack> getCachedList()
+	{
+		return this.cachedList;
+	}
+
     @Override
-    public void set(CraftingRecipe r)
+    public void setCachedList(List<ItemStack> r)
     {
-        this.cachedRecipe = r;
+        this.cachedList = r;
     }
 }
