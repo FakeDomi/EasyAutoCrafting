@@ -59,10 +59,11 @@ public class CraftingDropper
 	    DropperItemsCache itemsCache = (DropperItemsCache) dropper;
         CraftingRecipe recipe = cache.get();
 
-        if (!InventoryUtil.compareList(itemsCache.getCachedList(), listForCompare) || itemsCache.getCachedList().isEmpty() && (recipe == null || !recipe.matches(craftingInventory, world) )) //check if inventory has changed
+        if (!InventoryUtil.compareList(itemsCache.getCachedList(), listForCompare) || (itemsCache.getCachedList().isEmpty() && (recipe == null || !recipe.matches(craftingInventory, world)) )) //check if inventory has changed
         {
 	        recipe = world.getRecipeManager().getFirstMatch(RecipeType.CRAFTING, craftingInventory, world).orElse(null);
 	        itemsCache.setCachedList(InventoryUtil.deepCopy(listForCompare));
+		cache.set(recipe);
         }
 
         if (recipe != null)
