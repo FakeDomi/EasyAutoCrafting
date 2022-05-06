@@ -16,6 +16,24 @@ public class InventoryUtil
         return ItemStack.areItemsEqual(first, second) && ItemStack.areNbtEqual(first, second);
     }
 
+    public static boolean itemStackListsEqual(List<ItemStack> first, List<ItemStack> second)
+    {
+        if (first == null || second == null || first.size() != second.size())
+        {
+            return false;
+        }
+
+        for (int i = 0; i < first.size(); i++)
+        {
+            if (!itemsEqual(first.get(i), second.get(i)))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     public static ItemStack singleItemOf(ItemStack stack)
     {
         ItemStack copy = stack.copy();
@@ -23,21 +41,18 @@ public class InventoryUtil
         return copy;
     }
 
-    public static boolean takeItems(Inventory inventory, List<ItemStack> stacks, Direction side, boolean takeItems)
+    public static boolean tryTakeItems(Inventory inventory, List<ItemStack> stacks, Direction side, boolean simulate)
     {
-        if (!takeItems)
+        if (simulate)
         {
             stacks = deepCopy(stacks);
         }
 
-        if (inventory instanceof SidedInventory)
+        if (inventory instanceof SidedInventory sidedInventory)
         {
-            SidedInventory sidedInventory = (SidedInventory)inventory;
-            int[] availableSlots = sidedInventory.getAvailableSlots(side);
-
-            for (int availableSlot : availableSlots)
+            for (int availableSlot : sidedInventory.getAvailableSlots(side))
             {
-                if (takeItemsFromSlot(inventory, sidedInventory, availableSlot, stacks, side, takeItems))
+                if (takeItemsFromSlot(inventory, sidedInventory, availableSlot, stacks, side, simulate))
                 {
                     return true;
                 }
@@ -49,7 +64,7 @@ public class InventoryUtil
 
             for (int i = 0; i < inventory.size(); i++)
             {
-                if (takeItemsFromSlot(inventory, fakeSidedInventory, i, stacks, side, takeItems))
+                if (takeItemsFromSlot(inventory, fakeSidedInventory, i, stacks, side, simulate))
                 {
                     return true;
                 }
@@ -59,10 +74,9 @@ public class InventoryUtil
         return false;
     }
 
-    private static boolean takeItemsFromSlot(Inventory inventory, SidedInventory sidedInventory, int slot, List<ItemStack> stacks, Direction side, boolean takeItems)
+    private static boolean takeItemsFromSlot(Inventory inventory, SidedInventory sidedInventory, int slot, List<ItemStack> stacks, Direction side, boolean simulate)
     {
         ItemStack stackInSlot = inventory.getStack(slot);
-
         Iterator<ItemStack> stacksIterator = stacks.iterator();
 
         while (stacksIterator.hasNext())
@@ -86,7 +100,7 @@ public class InventoryUtil
                         stacksIterator.remove();
                     }
 
-                    if (takeItems)
+                    if (!simulate)
                     {
                         if (stackInSlot.getCount() > toTake)
                         {
@@ -105,23 +119,22 @@ public class InventoryUtil
         return stacks.isEmpty();
     }
 
-    public static boolean putItems(Inventory inventory, List<ItemStack> stacks, Direction side, boolean putItems)
+    public static boolean tryPutItems(Inventory inventory, List<ItemStack> stacks, Direction side, boolean simulate)
     {
-        if (!putItems)
+        if (simulate)
         {
             stacks = deepCopy(stacks);
         }
 
-        if (inventory instanceof SidedInventory)
+        if (inventory instanceof SidedInventory sidedInventory)
         {
-            SidedInventory sidedInventory = (SidedInventory)inventory;
             int[] availableSlots = sidedInventory.getAvailableSlots(side);
 
             for (int pass = 1; pass <= 2; pass++)
             {
                 for (int availableSlot : availableSlots)
                 {
-                    if (putItemsToSlot(inventory, sidedInventory, availableSlot, stacks, side, putItems, pass == 2))
+                    if (putItemsToSlot(inventory, sidedInventory, availableSlot, stacks, side, simulate, pass == 2))
                     {
                         return true;
                     }
@@ -136,7 +149,7 @@ public class InventoryUtil
             {
                 for (int i = 0; i < inventory.size(); i++)
                 {
-                    if (putItemsToSlot(inventory, fakeSidedInventory, i, stacks, side, putItems, pass == 2))
+                    if (putItemsToSlot(inventory, fakeSidedInventory, i, stacks, side, simulate, pass == 2))
                     {
                         return true;
                     }
@@ -147,7 +160,7 @@ public class InventoryUtil
         return false;
     }
 
-    private static boolean putItemsToSlot(Inventory inventory, SidedInventory sidedInventory, int slot, List<ItemStack> stacks, Direction side, boolean putItems, boolean considerEmptySlots)
+    private static boolean putItemsToSlot(Inventory inventory, SidedInventory sidedInventory, int slot, List<ItemStack> stacks, Direction side, boolean simulate, boolean considerEmptySlots)
     {
         ItemStack stackInSlot = inventory.getStack(slot);
 
@@ -163,7 +176,7 @@ public class InventoryUtil
                 {
                     stackInSlot = currentStack;
 
-                    if (putItems)
+                    if (!simulate)
                     {
                         inventory.setStack(slot, currentStack);
                     }
@@ -179,7 +192,7 @@ public class InventoryUtil
 
                 if (inventory.isValid(slot, currentStack) && sidedInventory.canInsert(slot, currentStack, side))
                 {
-                    if (putItems)
+                    if (!simulate)
                     {
                         stackInSlot.setCount(remainingCount == 0 ? totalCount : maxCount);
                         inventory.setStack(slot, stackInSlot);
@@ -200,7 +213,7 @@ public class InventoryUtil
         return stacks.isEmpty();
     }
 
-    public static List<ItemStack> deepCopy(List<ItemStack> list)
+    private static List<ItemStack> deepCopy(List<ItemStack> list)
     {
         List<ItemStack> copy = new ArrayList<>(list.size());
 
@@ -211,15 +224,4 @@ public class InventoryUtil
 
         return copy;
     }
-	public static boolean compareList(List<ItemStack> preList, List<ItemStack> afterList)
-	{
-		if(preList == null || preList.size() != afterList.size()){
-			return false;
-		}
-		for (int i =0; i < preList.size(); i++){
-			if(!preList.get(i).isOf(afterList.get(i).getItem()))
-				return false;
-		}
-		return true;
-	}
 }

@@ -28,13 +28,11 @@ public class DropperBlockMixin extends DispenserBlock
     @Override
     public int getComparatorOutput(BlockState state, World world, BlockPos pos)
     {
-        if (world instanceof ServerWorld && CraftingDropper.hasTableNextToBlock((ServerWorld)world, pos))
+        if (world instanceof ServerWorld && CraftingDropper.hasTableNextToBlock((ServerWorld)world, pos)
+            && world.getBlockEntity(pos) instanceof DropperBlockEntity dropper)
         {
-            DropperBlockEntity dropper = (DropperBlockEntity)world.getBlockEntity(pos);
-
             int stackCount = 0;
 
-            //noinspection ConstantConditions
             for (int i = 0; i < dropper.size(); i++)
             {
                 if (!dropper.getStack(i).isEmpty())

@@ -12,10 +12,12 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.recipe.CraftingRecipe;
 import net.minecraft.recipe.RecipeType;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.text.LiteralText;
 import net.minecraft.util.math.BlockPointerImpl;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import re.domi.easyautocrafting.mixin.CraftingInventoryMixin;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,48 +28,53 @@ public class CraftingDropper
 {
     public static void dispense(ServerWorld world, BlockPos pos, CallbackInfo ci)
     {
-        Direction facing = world.getBlockState(pos).get(DispenserBlock.FACING);
-        Direction facingAway = facing.getOpposite();
-
         if (!hasTableNextToBlock(world, pos))
         {
             return;
         }
 
-        Inventory inventoryBehind = HopperBlockEntity.getInventoryAt(world, pos.offset(facingAway));
-        boolean patternMode = inventoryBehind != null;
-        CraftingInventory craftingInventory = new CraftingInventory(new StubScreenHandler(), 3, 3);
+        ci.cancel();
+
+        Direction facing = world.getBlockState(pos).get(DispenserBlock.FACING);
+        Direction facingAway = facing.getOpposite();
 
         DropperBlockEntity dropper = (DropperBlockEntity)world.getBlockEntity(pos);
         List<ItemStack> ingredients = new ArrayList<>(9);
-		List<ItemStack> listForCompare = new ArrayList<>(9);
+        CraftingInventory craftingInventory = new CraftingInventory(new StubScreenHandler(), 3, 3);
+
         for (int i = 0; i < 9; i++)
         {
             @SuppressWarnings("ConstantConditions") ItemStack stack = InventoryUtil.singleItemOf(dropper.getStack(i));
             addToMergedItemStackList(ingredients, stack);
-			listForCompare.add(i, stack);
             craftingInventory.setStack(i, stack);
         }
 
-        if (craftingInventory.isEmpty() || patternMode && !InventoryUtil.takeItems(inventoryBehind, ingredients, facing, false))
+        Inventory inventoryBehind = HopperBlockEntity.getInventoryAt(world, pos.offset(facingAway));
+        boolean patternMode = inventoryBehind != null;
+
+        if (craftingInventory.isEmpty() || patternMode && !InventoryUtil.tryTakeItems(inventoryBehind, ingredients, facing, true))
         {
-            ci.cancel();
             return;
         }
 
-        DropperRecipeCache cache = (DropperRecipeCache)dropper;
-	    DropperItemsCache itemsCache = (DropperItemsCache) dropper;
-        CraftingRecipe recipe = cache.get();
+        DropperCache cache = (DropperCache)dropper;
+        CraftingRecipe recipe = cache.getRecipe();
 
-        if (!InventoryUtil.compareList(itemsCache.getCachedList(), listForCompare) || itemsCache.getCachedList().isEmpty() && (recipe == null || !recipe.matches(craftingInventory, world) )) //check if inventory has changed
+        //noinspection ConstantConditions
+        List<ItemStack> craftingInventoryItems = ((CraftingInventoryMixin)craftingInventory).getStacks();
+
+        if (!InventoryUtil.itemStackListsEqual(cache.getIngredients(), craftingInventoryItems)
+            || recipe != null && !recipe.matches(craftingInventory, world))
         {
-	        recipe = world.getRecipeManager().getFirstMatch(RecipeType.CRAFTING, craftingInventory, world).orElse(null);
-	        itemsCache.setCachedList(InventoryUtil.deepCopy(listForCompare));
+            world.getPlayers().forEach(p -> p.sendMessage(new LiteralText("lookup"), false));
+            recipe = world.getRecipeManager().getFirstMatch(RecipeType.CRAFTING, craftingInventory, world).orElse(null);
+
+            cache.setRecipe(recipe);
+            cache.setIngredients(craftingInventoryItems);
         }
 
         if (recipe != null)
         {
-            cache.set(recipe);
             List<ItemStack> craftingResults = new ArrayList<>();
 
             addToMergedItemStackList(craftingResults, recipe.craft(craftingInventory));
@@ -82,9 +89,9 @@ public class CraftingDropper
 
             if (inventoryInFront != null)
             {
-                if (InventoryUtil.putItems(inventoryInFront, craftingResults, facing.getOpposite(), false))
+                if (InventoryUtil.tryPutItems(inventoryInFront, craftingResults, facing.getOpposite(), true))
                 {
-                    InventoryUtil.putItems(inventoryInFront, craftingResults, facing.getOpposite(), true);
+                    InventoryUtil.tryPutItems(inventoryInFront, craftingResults, facing.getOpposite(), false);
                     hasCrafted = true;
                 }
             }
@@ -92,7 +99,7 @@ public class CraftingDropper
             {
                 for (ItemStack craftingResult : craftingResults)
                 {
-                    ItemDispenserBehavior.spawnItem(world, craftingResult, 6, facing,  DispenserBlock.getOutputLocation(new BlockPointerImpl(world, pos)));
+                    ItemDispenserBehavior.spawnItem(world, craftingResult, 6, facing, DispenserBlock.getOutputLocation(new BlockPointerImpl(world, pos)));
                 }
 
                 world.syncWorldEvent(1000, pos, 0);
@@ -105,21 +112,22 @@ public class CraftingDropper
             {
                 if (patternMode)
                 {
-                    InventoryUtil.takeItems(inventoryBehind, ingredients, facing, true);
+                    InventoryUtil.tryTakeItems(inventoryBehind, ingredients, facing, false);
                 }
                 else
                 {
                     for (int i = 0; i < 9; i++)
                     {
-                        dropper.getStack(i).decrement(1);
+                        if (!dropper.getStack(i).isEmpty())
+                        {
+                            dropper.getStack(i).decrement(1);
+                        }
                     }
 
                     dropper.markDirty();
                 }
             }
         }
-
-        ci.cancel();
     }
 
     public static boolean hasTableNextToBlock(ServerWorld world, BlockPos pos)

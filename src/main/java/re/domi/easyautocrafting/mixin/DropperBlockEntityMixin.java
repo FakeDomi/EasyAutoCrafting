@@ -8,17 +8,16 @@ import net.minecraft.recipe.CraftingRecipe;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import org.spongepowered.asm.mixin.Mixin;
+import re.domi.easyautocrafting.DropperCache;
 import re.domi.easyautocrafting.CraftingDropper;
-import re.domi.easyautocrafting.DropperItemsCache;
-import re.domi.easyautocrafting.DropperRecipeCache;
 
 import java.util.List;
 
 @Mixin(DropperBlockEntity.class)
-public class DropperBlockEntityMixin extends DispenserBlockEntity implements DropperRecipeCache, DropperItemsCache
+public class DropperBlockEntityMixin extends DispenserBlockEntity implements DropperCache
 {
     private CraftingRecipe cachedRecipe;
-	private List<ItemStack> cachedList;
+	private List<ItemStack> cachedIngredients;
 
     public DropperBlockEntityMixin(BlockPos pos, BlockState state)
     {
@@ -37,26 +36,33 @@ public class DropperBlockEntityMixin extends DispenserBlockEntity implements Dro
     }
 
     @Override
-    public CraftingRecipe get()
+    public CraftingRecipe getRecipe()
     {
         return this.cachedRecipe;
     }
 
 	@Override
-	public void set(CraftingRecipe r)
+	public void setRecipe(CraftingRecipe r)
 	{
 		this.cachedRecipe = r;
 	}
 
 	@Override
-	public List<ItemStack> getCachedList()
+	public List<ItemStack> getIngredients()
 	{
-		return this.cachedList;
+		return this.cachedIngredients;
 	}
 
     @Override
-    public void setCachedList(List<ItemStack> r)
+    public void setIngredients(List<ItemStack> r)
     {
-        this.cachedList = r;
+        this.cachedIngredients = r;
+    }
+
+    @Override
+    public void clearCache()
+    {
+        this.cachedRecipe = null;
+        this.cachedIngredients = null;
     }
 }

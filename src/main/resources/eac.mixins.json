@@ -4,8 +4,9 @@
   "package": "re.domi.easyautocrafting.mixin",
   "compatibilityLevel": "JAVA_16",
   "mixins": [
-    "DropperBlockMixin",
-    "DropperBlockEntityMixin"
+    "CraftingInventoryMixin",
+    "DropperBlockEntityMixin",
+    "DropperBlockMixin"
   ],
   "client": [
   ],
