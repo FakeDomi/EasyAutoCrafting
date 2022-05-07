@@ -12,7 +12,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.recipe.CraftingRecipe;
 import net.minecraft.recipe.RecipeType;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.LiteralText;
 import net.minecraft.util.math.BlockPointerImpl;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -66,7 +65,6 @@ public class CraftingDropper
         if (!InventoryUtil.itemStackListsEqual(cache.getIngredients(), craftingInventoryItems)
             || recipe != null && !recipe.matches(craftingInventory, world))
         {
-            world.getPlayers().forEach(p -> p.sendMessage(new LiteralText("lookup"), false));
             recipe = world.getRecipeManager().getFirstMatch(RecipeType.CRAFTING, craftingInventory, world).orElse(null);
 
             cache.setRecipe(recipe);
