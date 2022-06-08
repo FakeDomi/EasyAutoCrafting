@@ -7,11 +7,11 @@ import java.util.List;
 
 public interface DropperCache
 {
-    CraftingRecipe getRecipe();
-    void setRecipe(CraftingRecipe r);
+    CraftingRecipe eac_getRecipe();
+    void eac_setRecipe(CraftingRecipe r);
 
-    List<ItemStack> getIngredients();
-    void setIngredients(List<ItemStack> l);
+    List<ItemStack> eac_getIngredients();
+    void eac_setIngredients(List<ItemStack> l);
 
-    void clearCache();
+    void eac_clearCache();
 }

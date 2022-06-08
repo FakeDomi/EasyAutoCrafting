@@ -4,16 +4,18 @@ import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SidedInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.Direction;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
 public class InventoryUtil
 {
     public static boolean itemsEqual(ItemStack first, ItemStack second)
     {
-        return ItemStack.areItemsEqual(first, second) && ItemStack.areNbtEqual(first, second);
+        return first == second || first.getItem() == second.getItem() && (Objects.equals(first.getNbt(), second.getNbt()));
     }
 
     public static boolean itemStackListsEqual(List<ItemStack> first, List<ItemStack> second)
@@ -60,11 +62,9 @@ public class InventoryUtil
         }
         else
         {
-            SidedInventory fakeSidedInventory = new StubSidedInventory();
-
             for (int i = 0; i < inventory.size(); i++)
             {
-                if (takeItemsFromSlot(inventory, fakeSidedInventory, i, stacks, side, simulate))
+                if (takeItemsFromSlot(inventory, null, i, stacks, side, simulate))
                 {
                     return true;
                 }
@@ -74,7 +74,7 @@ public class InventoryUtil
         return false;
     }
 
-    private static boolean takeItemsFromSlot(Inventory inventory, SidedInventory sidedInventory, int slot, List<ItemStack> stacks, Direction side, boolean simulate)
+    private static boolean takeItemsFromSlot(Inventory inventory, @Nullable SidedInventory sidedInventory, int slot, List<ItemStack> stacks, Direction side, boolean simulate)
     {
         ItemStack stackInSlot = inventory.getStack(slot);
         Iterator<ItemStack> stacksIterator = stacks.iterator();
@@ -89,7 +89,7 @@ public class InventoryUtil
                 ItemStack extractedStack = stackInSlot.copy();
                 extractedStack.setCount(toTake);
 
-                if (sidedInventory.canExtract(slot, extractedStack, side))
+                if (sidedInventory == null || sidedInventory.canExtract(slot, extractedStack, side))
                 {
                     if (currentStack.getCount() > toTake)
                     {
@@ -143,13 +143,11 @@ public class InventoryUtil
         }
         else
         {
-            SidedInventory fakeSidedInventory = new StubSidedInventory();
-
             for (int pass = 1; pass <= 2; pass++)
             {
                 for (int i = 0; i < inventory.size(); i++)
                 {
-                    if (putItemsToSlot(inventory, fakeSidedInventory, i, stacks, side, simulate, pass == 2))
+                    if (putItemsToSlot(inventory, null, i, stacks, side, simulate, pass == 2))
                     {
                         return true;
                     }
@@ -160,7 +158,7 @@ public class InventoryUtil
         return false;
     }
 
-    private static boolean putItemsToSlot(Inventory inventory, SidedInventory sidedInventory, int slot, List<ItemStack> stacks, Direction side, boolean simulate, boolean considerEmptySlots)
+    private static boolean putItemsToSlot(Inventory inventory, @Nullable SidedInventory sidedInventory, int slot, List<ItemStack> stacks, Direction side, boolean simulate, boolean considerEmptySlots)
     {
         ItemStack stackInSlot = inventory.getStack(slot);
 
@@ -172,7 +170,7 @@ public class InventoryUtil
 
             if (considerEmptySlots && stackInSlot.isEmpty())
             {
-                if (inventory.isValid(slot, currentStack) && sidedInventory.canInsert(slot, currentStack, side))
+                if (inventory.isValid(slot, currentStack) && (sidedInventory == null || sidedInventory.canInsert(slot, currentStack, side)))
                 {
                     stackInSlot = currentStack;
 
@@ -190,7 +188,7 @@ public class InventoryUtil
                 int maxCount = Math.min(inventory.getMaxCountPerStack(), currentStack.getMaxCount());
                 int remainingCount = Math.max(0, totalCount - maxCount);
 
-                if (inventory.isValid(slot, currentStack) && sidedInventory.canInsert(slot, currentStack, side))
+                if (inventory.isValid(slot, currentStack) && (sidedInventory == null || sidedInventory.canInsert(slot, currentStack, side)))
                 {
                     if (!simulate)
                     {

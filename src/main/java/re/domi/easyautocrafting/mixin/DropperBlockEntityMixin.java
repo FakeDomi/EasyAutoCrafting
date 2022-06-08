@@ -1,68 +1,79 @@
 package re.domi.easyautocrafting.mixin;
 
-import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.DispenserBlockEntity;
 import net.minecraft.block.entity.DropperBlockEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.recipe.CraftingRecipe;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
 import org.spongepowered.asm.mixin.Mixin;
-import re.domi.easyautocrafting.DropperCache;
+import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import re.domi.easyautocrafting.CraftingDropper;
+import re.domi.easyautocrafting.DropperCache;
 
 import java.util.List;
 
-@Mixin(DropperBlockEntity.class)
+@Mixin(value = DropperBlockEntity.class, priority = 1500)
 public class DropperBlockEntityMixin extends DispenserBlockEntity implements DropperCache
 {
+    @Unique
     private CraftingRecipe cachedRecipe;
-	private List<ItemStack> cachedIngredients;
 
-    public DropperBlockEntityMixin(BlockPos pos, BlockState state)
-    {
-        super(pos, state);
-    }
+    @Unique
+    private List<ItemStack> cachedIngredients;
 
     @Override
+    @Unique(silent = true)
     public boolean isValid(int slot, ItemStack stack)
     {
-        if (this.world instanceof ServerWorld && CraftingDropper.hasTableNextToBlock((ServerWorld)this.world, this.pos))
-        {
-            return this.getStack(slot).isEmpty();
-        }
-
         return super.isValid(slot, stack);
     }
 
+    @Inject(method = { "isValid", "method_5437" }, at = @At("HEAD"), cancellable = true, remap = false)
+    public void eac_isValid(int slot, ItemStack stack, CallbackInfoReturnable<Boolean> cir)
+    {
+        if (this.world instanceof ServerWorld && CraftingDropper.hasTableNextToBlock((ServerWorld)this.world, this.pos))
+        {
+            cir.setReturnValue(this.getStack(slot).isEmpty());
+        }
+    }
+
     @Override
-    public CraftingRecipe getRecipe()
+    public CraftingRecipe eac_getRecipe()
     {
         return this.cachedRecipe;
     }
 
-	@Override
-	public void setRecipe(CraftingRecipe r)
-	{
-		this.cachedRecipe = r;
-	}
-
-	@Override
-	public List<ItemStack> getIngredients()
-	{
-		return this.cachedIngredients;
-	}
+    @Override
+    public void eac_setRecipe(CraftingRecipe r)
+    {
+        this.cachedRecipe = r;
+    }
 
     @Override
-    public void setIngredients(List<ItemStack> r)
+    public List<ItemStack> eac_getIngredients()
+    {
+        return this.cachedIngredients;
+    }
+
+    @Override
+    public void eac_setIngredients(List<ItemStack> r)
     {
         this.cachedIngredients = r;
     }
 
     @Override
-    public void clearCache()
+    public void eac_clearCache()
     {
         this.cachedRecipe = null;
         this.cachedIngredients = null;
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    public DropperBlockEntityMixin()
+    {
+        super(null, null);
     }
 }

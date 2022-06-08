@@ -57,18 +57,18 @@ public class CraftingDropper
         }
 
         DropperCache cache = (DropperCache)dropper;
-        CraftingRecipe recipe = cache.getRecipe();
+        CraftingRecipe recipe = cache.eac_getRecipe();
 
         //noinspection ConstantConditions
         List<ItemStack> craftingInventoryItems = ((CraftingInventoryMixin)craftingInventory).getStacks();
 
-        if (!InventoryUtil.itemStackListsEqual(cache.getIngredients(), craftingInventoryItems)
+        if (!InventoryUtil.itemStackListsEqual(cache.eac_getIngredients(), craftingInventoryItems)
             || recipe != null && !recipe.matches(craftingInventory, world))
         {
             recipe = world.getRecipeManager().getFirstMatch(RecipeType.CRAFTING, craftingInventory, world).orElse(null);
 
-            cache.setRecipe(recipe);
-            cache.setIngredients(craftingInventoryItems);
+            cache.eac_setRecipe(recipe);
+            cache.eac_setIngredients(craftingInventoryItems);
         }
 
         if (recipe != null)

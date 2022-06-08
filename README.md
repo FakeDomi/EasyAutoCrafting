@@ -1,10 +1,12 @@
 # EasyAutoCrafting
 
-**Requires [Fabric API](https://modrinth.com/mod/fabric-api).** This mod improves automation in Minecraft by allowing you to construct automatic crafting machines utilizing vanilla blocks.
+**Requires [Fabric API](https://github.com/FabricMC/fabric/releases).** This mod improves automation in Minecraft by allowing you to construct automatic crafting machines utilizing vanilla blocks.
 If you want to use this on a server, the clients **don't** have to install the mod.
 
 It's as simple as placing a crafting table next to a dropper!*  
 <sup><sub>* more steps required for it to actually do anything</sub></sub>
+
+One minute showcase of this mod: https://youtu.be/ZwLmG1849W0
 
 There are two ways to get automatic crafting going. The easier option to start with is *pattern crafting*. You use this mode by placing an inventory **behind** the dropper. You then put a pattern of items inside the dropper, forming the recipe you want it to craft.  
 When you give it a redstone pulse now, it will try to craft the recipe using items from the inventory behind. The items inside the dropper will only act as a reference and **won't** be used up.
@@ -19,7 +21,5 @@ Both of these changes won't apply to normal droppers that don't touch a crafting
 
 In case you don't like to see droppers spitting items around, there's one more thing for you:  
 Just placing an inventory **in front** of the dropper will make it place the crafted items and any remainders like empty buckets or bottles inside without spilling anything. This also means that if there's not enough space inside the inventory, nothing will be crafted.
-
-One minute showcase of this mod: https://youtu.be/ZwLmG1849W0
 
 This mod took inspiration from gnembon's [Carpet Mod](https://github.com/gnembon/fabric-carpet) with its auto crafting feature, picking up the idea and making it more useful for different scenarios.

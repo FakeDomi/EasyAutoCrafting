@@ -10,7 +10,7 @@
     "AngelBottomless"
   ],
   "contact": {
-    "homepage": "https://www.curseforge.com/minecraft/mc-mods/easyautocrafting",
+    "homepage": "https://domi.re/mc-mods/eac",
     "sources": "https://github.com/FakeDomi/EasyAutoCrafting",
     "issues": "https://github.com/FakeDomi/EasyAutoCrafting/issues"
   },
@@ -31,6 +31,6 @@
   "depends": {
     "fabricloader": "*",
     "fabric": "*",
-    "minecraft": ">=1.18"
+    "minecraft": ">=1.19"
   }
 }

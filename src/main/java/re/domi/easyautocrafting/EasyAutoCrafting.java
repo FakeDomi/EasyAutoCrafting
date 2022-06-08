@@ -18,7 +18,7 @@ public class EasyAutoCrafting implements ModInitializer
                         c -> c.getBlockEntities().values().stream()
                             .filter(DropperCache.class::isInstance)
                             .map(DropperCache.class::cast)
-                            .forEach(DropperCache::clearCache)));
+                            .forEach(DropperCache::eac_clearCache)));
             }
         });
     }
