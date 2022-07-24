@@ -1,5 +1,7 @@
 package re.domi.easyautocrafting;
 
+import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.DispenserBlock;
@@ -48,10 +50,12 @@ public class CraftingDropper
             craftingInventory.setStack(i, stack);
         }
 
-        Inventory inventoryBehind = HopperBlockEntity.getInventoryAt(world, pos.offset(facingAway));
-        boolean patternMode = inventoryBehind != null;
-
-        if (craftingInventory.isEmpty() || patternMode && !InventoryUtil.tryTakeItems(inventoryBehind, ingredients, facing, true))
+        //Inventory inventoryBehind = HopperBlockEntity.getInventoryAt(world, pos.offset(facingAway));
+	    @SuppressWarnings("UnstableApiUsage")
+	    List<Storage<ItemVariant>> inventoryBehind = InventoryUtil.getMerged3x3InventoryBehind(world, facing, pos);
+        //boolean patternMode = inventoryBehind != null;
+		boolean patternMode = HopperBlockEntity.getInventoryAt(world, pos.offset(facingAway)) != null;
+        if (craftingInventory.isEmpty() || patternMode && !InventoryUtil.tryTakeItems(inventoryBehind, ingredients, true))
         {
             return;
         }
@@ -110,7 +114,7 @@ public class CraftingDropper
             {
                 if (patternMode)
                 {
-                    InventoryUtil.tryTakeItems(inventoryBehind, ingredients, facing, false);
+                    InventoryUtil.tryTakeItems(inventoryBehind, ingredients, false);
                 }
                 else
                 {
