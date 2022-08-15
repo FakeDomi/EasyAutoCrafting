@@ -1,5 +1,6 @@
 package re.domi.easyautocrafting;
 
+import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.minecraft.block.Block;
@@ -27,19 +28,18 @@ import static net.minecraft.util.math.Direction.*;
 
 public class CraftingDropper
 {
-    public static void dispense(ServerWorld world, BlockPos pos, CallbackInfo ci)
+    public static void dispense(ServerWorld world, BlockPos dispenserPos, CallbackInfo ci)
     {
-        if (!hasTableNextToBlock(world, pos))
+        if (!hasTableNextToBlock(world, dispenserPos))
         {
             return;
         }
 
         ci.cancel();
 
-        Direction facing = world.getBlockState(pos).get(DispenserBlock.FACING);
-        Direction facingAway = facing.getOpposite();
+        Direction facing = world.getBlockState(dispenserPos).get(DispenserBlock.FACING);
 
-        DropperBlockEntity dropper = (DropperBlockEntity)world.getBlockEntity(pos);
+        DropperBlockEntity dropper = (DropperBlockEntity)world.getBlockEntity(dispenserPos);
         List<ItemStack> ingredients = new ArrayList<>(9);
         CraftingInventory craftingInventory = new CraftingInventory(new StubScreenHandler(), 3, 3);
 
@@ -50,12 +50,13 @@ public class CraftingDropper
             craftingInventory.setStack(i, stack);
         }
 
-        //Inventory inventoryBehind = HopperBlockEntity.getInventoryAt(world, pos.offset(facingAway));
-	    @SuppressWarnings("UnstableApiUsage")
-	    List<Storage<ItemVariant>> inventoryBehind = InventoryUtil.getMerged3x3InventoryBehind(world, facing, pos);
-        //boolean patternMode = inventoryBehind != null;
-		boolean patternMode = HopperBlockEntity.getInventoryAt(world, pos.offset(facingAway)) != null;
-        if (craftingInventory.isEmpty() || patternMode && !InventoryUtil.tryTakeItems(inventoryBehind, ingredients, true))
+	    @SuppressWarnings("UnstableApiUsage") Storage<ItemVariant> ingredientStorage = Config.enable3x3InventorySearching ?
+                InventoryUtil.getMerged3x3Storage(world, dispenserPos.offset(facing.getOpposite()), facing) :
+                ItemStorage.SIDED.find(world, dispenserPos.offset(facing.getOpposite()), facing);
+
+        boolean patternMode = ingredientStorage != null;
+
+        if (craftingInventory.isEmpty() || patternMode && !InventoryUtil.tryTakeItems(ingredientStorage, ingredients, true))
         {
             return;
         }
@@ -86,7 +87,7 @@ public class CraftingDropper
                 addToMergedItemStackList(craftingResults, remainingStack);
             }
 
-            Inventory inventoryInFront = HopperBlockEntity.getInventoryAt(world, pos.offset(facing));
+            Inventory inventoryInFront = HopperBlockEntity.getInventoryAt(world, dispenserPos.offset(facing));
             boolean hasCrafted = false;
 
             if (inventoryInFront != null)
@@ -101,11 +102,11 @@ public class CraftingDropper
             {
                 for (ItemStack craftingResult : craftingResults)
                 {
-                    ItemDispenserBehavior.spawnItem(world, craftingResult, 6, facing, DispenserBlock.getOutputLocation(new BlockPointerImpl(world, pos)));
+                    ItemDispenserBehavior.spawnItem(world, craftingResult, 6, facing, DispenserBlock.getOutputLocation(new BlockPointerImpl(world, dispenserPos)));
                 }
 
-                world.syncWorldEvent(1000, pos, 0);
-                world.syncWorldEvent(2000, pos, facing.getId());
+                world.syncWorldEvent(1000, dispenserPos, 0);
+                world.syncWorldEvent(2000, dispenserPos, facing.getId());
 
                 hasCrafted = true;
             }
@@ -114,7 +115,7 @@ public class CraftingDropper
             {
                 if (patternMode)
                 {
-                    InventoryUtil.tryTakeItems(inventoryBehind, ingredients, false);
+                    InventoryUtil.tryTakeItems(ingredientStorage, ingredients, false);
                 }
                 else
                 {

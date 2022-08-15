@@ -36,7 +36,8 @@ public class DropperBlockMixin extends Block
     @Inject(method = { "getComparatorOutput", "method_9572" }, at = @At("HEAD"), cancellable = true, remap = false)
     public void eac_getComparatorOutput(BlockState state, World world, BlockPos pos, CallbackInfoReturnable<Integer> cir)
     {
-        if (world instanceof ServerWorld && CraftingDropper.hasTableNextToBlock((ServerWorld)world, pos)
+        if (world instanceof ServerWorld
+            && CraftingDropper.hasTableNextToBlock((ServerWorld)world, pos)
             && world.getBlockEntity(pos) instanceof DropperBlockEntity dropper)
         {
             int stackCount = 0;
@@ -61,9 +62,9 @@ public class DropperBlockMixin extends Block
     }
 
     @Inject(method = { "neighborUpdate", "method_9612" }, at = @At("HEAD"), remap = false)
-    public void eac_neighborUpdate(BlockState state, World world, BlockPos pos, Block block, BlockPos fromPos, boolean notify, CallbackInfo ci)
+    public void eac_neighborUpdate(BlockState state, World world, BlockPos pos, Block sourceBlock, BlockPos sourcePos, boolean notify, CallbackInfo ci)
     {
-        if (block == Blocks.CRAFTING_TABLE || world.getBlockState(fromPos).getBlock() == Blocks.CRAFTING_TABLE)
+        if (sourceBlock == Blocks.CRAFTING_TABLE || world.getBlockState(sourcePos).getBlock() == Blocks.CRAFTING_TABLE)
         {
             world.updateComparators(pos, state.getBlock());
         }

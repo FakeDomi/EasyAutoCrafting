@@ -3,45 +3,24 @@ package re.domi.easyautocrafting;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
-import net.fabricmc.fabric.api.transfer.v1.storage.StorageUtil;
 import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
 import net.fabricmc.fabric.api.transfer.v1.storage.base.CombinedStorage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
-import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SidedInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Objects;
 
 public class InventoryUtil
 {
-	@SuppressWarnings("UnstableApiUsage")
-	public static final Storage<ItemVariant> ALWAYS_EMPTY = new Storage<>() {
-		@Override
-		public long insert(ItemVariant resource, long maxAmount, TransactionContext transaction) {
-			return maxAmount;
-		}
-
-		@Override
-		public long extract(ItemVariant resource, long maxAmount, TransactionContext transaction) {
-			return 0;
-		}
-		@Override
-		public boolean supportsExtraction(){
-			return false;
-		}
-
-		@Override
-		public @NotNull Iterator<StorageView<ItemVariant>> iterator() {
-			return Collections.emptyIterator();
-		}
-	};
     public static boolean itemsEqual(ItemStack first, ItemStack second)
     {
         return first == second || first.getItem() == second.getItem() && (Objects.equals(first.getNbt(), second.getNbt()));
@@ -64,39 +43,56 @@ public class InventoryUtil
 
         return true;
     }
-	@SuppressWarnings("UnstableApiUsage")
-	public static List<Storage<ItemVariant>> getMerged3x3InventoryBehind(World world, Direction dropperFacing, BlockPos dropperPos){
-		BlockPos posBehind = dropperPos.offset(dropperFacing.getOpposite());
-		List<Storage<ItemVariant>> inventories = new ArrayList<>(9);
-		//Now we got perpendicular directions
-		for (int a = -1; a < 2; a++){
-			for (int b = -1; b < 2; b++){
-				Direction.Axis first;
-				Direction.Axis second;
-				switch (dropperFacing.getAxis()) {
-					case X -> {
-						first = Direction.Axis.Y;
-						second = Direction.Axis.Z;
-					}
-					case Y -> {
-						first = Direction.Axis.X;
-						second = Direction.Axis.Z;
-					}
-					case Z -> {
-						first = Direction.Axis.Y;
-						second = Direction.Axis.X;
-					}
-					default -> throw new IllegalStateException("Dropper facing was null");
-				}
-				BlockPos checkPos = posBehind.offset(first, a).offset(second, b);
-				//inventories[i] = HopperBlockEntity.getInventoryAt(world, checkPos);
-				Storage<ItemVariant> variantStorage = ItemStorage.SIDED.find(world, checkPos, dropperFacing.getOpposite());
-				if(variantStorage != null)
-					inventories.add(variantStorage);
-			}
-		}
-		return inventories;
-	}
+
+    @SuppressWarnings("UnstableApiUsage")
+    public static Storage<ItemVariant> getMerged3x3Storage(World world, BlockPos center, Direction extractionSide)
+    {
+        Direction.Axis first;
+        Direction.Axis second;
+
+        if (ItemStorage.SIDED.find(world, center, extractionSide) == null)
+        {
+            return null;
+        }
+
+        List<Storage<ItemVariant>> storages = new ArrayList<>(9);
+
+        switch (extractionSide.getAxis())
+        {
+            case X ->
+            {
+                first = Direction.Axis.Y;
+                second = Direction.Axis.Z;
+            }
+            case Y ->
+            {
+                first = Direction.Axis.X;
+                second = Direction.Axis.Z;
+            }
+            case Z ->
+            {
+                first = Direction.Axis.Y;
+                second = Direction.Axis.X;
+            }
+            default -> throw new IllegalStateException("Invalid axis: " + extractionSide.getAxis());
+        }
+
+        for (int a = -1; a <= 1; a++)
+        {
+            for (int b = -1; b <= 1; b++)
+            {
+                BlockPos checkPos = center.offset(first, a).offset(second, b);
+                Storage<ItemVariant> storage = ItemStorage.SIDED.find(world, checkPos, extractionSide);
+
+                if(storage != null)
+                {
+                    storages.add(storage);
+                }
+            }
+        }
+
+        return new CombinedStorage<>(storages);
+    }
 
     public static ItemStack singleItemOf(ItemStack stack)
     {
@@ -104,110 +100,57 @@ public class InventoryUtil
         copy.setCount(1);
         return copy;
     }
+
 	@SuppressWarnings("UnstableApiUsage")
-	public static boolean tryTakeItems(List<Storage<ItemVariant>> inventories, List<ItemStack> stacks, boolean simulate)
-	{
-		if (simulate)
-		{
-			stacks = deepCopy(stacks);
-		}
-		boolean done = true;
-		CombinedStorage<ItemVariant, Storage<ItemVariant>> storages = new CombinedStorage<>(inventories);
-		try (Transaction transaction = Transaction.openOuter()){
-			for (ItemStack itemStack : stacks){
-				long movedAmount = StorageUtil.move(storages, ALWAYS_EMPTY, (stack)-> stack.toStack().isItemEqual(itemStack), itemStack.getCount(), transaction);
-				if (movedAmount < itemStack.getCount()){
-					done = false;
-					break;
-				}
-			}
-			if (!done || simulate){
-				transaction.abort();
-			}
-			else {
-				transaction.commit();
-			}
-		}
-		catch (IllegalStateException ignored){
-			return false;
-		}
-		return done;
-	}
-	@SuppressWarnings("unused")
-    public static boolean tryTakeItems(Inventory inventory, List<ItemStack> stacks, Direction side, boolean simulate)
+	public static boolean tryTakeItems(Storage<ItemVariant> storage, List<ItemStack> stacks, boolean simulate)
     {
-        if (simulate)
-        {
-            stacks = deepCopy(stacks);
-        }
+        stacks = deepCopy(stacks);
 
-        if (inventory instanceof SidedInventory sidedInventory)
+        try (Transaction transaction = Transaction.openOuter())
         {
-            for (int availableSlot : sidedInventory.getAvailableSlots(side))
+            for (StorageView<ItemVariant> view : storage)
             {
-                if (takeItemsFromSlot(inventory, sidedInventory, availableSlot, stacks, side, simulate))
+                ItemVariant variant = view.getResource();
+
+                if (variant.isBlank())
                 {
-                    return true;
+                    continue;
                 }
-            }
-        }
-        else
-        {
-            for (int i = 0; i < inventory.size(); i++)
-            {
-                if (takeItemsFromSlot(inventory, null, i, stacks, side, simulate))
+
+                Iterator<ItemStack> i = stacks.iterator();
+
+                while (i.hasNext())
                 {
-                    return true;
-                }
-            }
-        }
+                    ItemStack current = i.next();
 
-        return false;
-    }
-
-    private static boolean takeItemsFromSlot(Inventory inventory, @Nullable SidedInventory sidedInventory, int slot, List<ItemStack> stacks, Direction side, boolean simulate)
-    {
-        ItemStack stackInSlot = inventory.getStack(slot);
-        Iterator<ItemStack> stacksIterator = stacks.iterator();
-
-        while (stacksIterator.hasNext())
-        {
-            ItemStack currentStack = stacksIterator.next();
-
-            if (itemsEqual(stackInSlot, currentStack))
-            {
-                int toTake = Math.min(currentStack.getCount(), stackInSlot.getCount());
-                ItemStack extractedStack = stackInSlot.copy();
-                extractedStack.setCount(toTake);
-
-                if (sidedInventory == null || sidedInventory.canExtract(slot, extractedStack, side))
-                {
-                    if (currentStack.getCount() > toTake)
+                    if (variant.matches(current))
                     {
-                        currentStack.setCount(currentStack.getCount() - toTake);
-                    }
-                    else
-                    {
-                        stacksIterator.remove();
-                    }
+                        int remaining = current.getCount() - (int)view.extract(variant, current.getCount(), transaction);
 
-                    if (!simulate)
-                    {
-                        if (stackInSlot.getCount() > toTake)
+                        if (remaining > 0)
                         {
-                            stackInSlot.setCount(stackInSlot.getCount() - toTake);
-                            inventory.setStack(slot, stackInSlot);
+                            current.setCount(remaining);
                         }
                         else
                         {
-                            inventory.setStack(slot, ItemStack.EMPTY);
+                            i.remove();
                         }
                     }
                 }
-            }
-        }
 
-        return stacks.isEmpty();
+                if (stacks.isEmpty())
+                {
+                    if (!simulate)
+                    {
+                        transaction.commit();
+                    }
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 
     public static boolean tryPutItems(Inventory inventory, List<ItemStack> stacks, Direction side, boolean simulate)

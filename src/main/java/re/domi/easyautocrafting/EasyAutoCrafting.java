@@ -9,6 +9,8 @@ public class EasyAutoCrafting implements ModInitializer
     @Override
     public void onInitialize()
     {
+        Config.read();
+
         ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, serverResourceManager, success) ->
         {
             if (success)
