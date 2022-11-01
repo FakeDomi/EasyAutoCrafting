@@ -28,6 +28,7 @@ import static net.minecraft.util.math.Direction.*;
 
 public class CraftingDropper
 {
+    @SuppressWarnings("UnstableApiUsage")
     public static void dispense(ServerWorld world, BlockPos dispenserPos, CallbackInfo ci)
     {
         if (!hasTableNextToBlock(world, dispenserPos))
@@ -50,7 +51,7 @@ public class CraftingDropper
             craftingInventory.setStack(i, stack);
         }
 
-	    @SuppressWarnings("UnstableApiUsage") Storage<ItemVariant> ingredientStorage = Config.enable3x3InventorySearching ?
+        Storage<ItemVariant> ingredientStorage = Config.enable3x3InventorySearching ?
                 InventoryUtil.getMerged3x3Storage(world, dispenserPos.offset(facing.getOpposite()), facing) :
                 ItemStorage.SIDED.find(world, dispenserPos.offset(facing.getOpposite()), facing);
 
@@ -88,6 +89,7 @@ public class CraftingDropper
             }
 
             Inventory inventoryInFront = HopperBlockEntity.getInventoryAt(world, dispenserPos.offset(facing));
+            Storage<ItemVariant> storage = ItemStorage.SIDED.find(world, dispenserPos.offset(facing), facing.getOpposite());
             boolean hasCrafted = false;
 
             if (inventoryInFront != null)
@@ -95,6 +97,13 @@ public class CraftingDropper
                 if (InventoryUtil.tryPutItems(inventoryInFront, craftingResults, facing.getOpposite(), true))
                 {
                     InventoryUtil.tryPutItems(inventoryInFront, craftingResults, facing.getOpposite(), false);
+                    hasCrafted = true;
+                }
+            }
+            else if (storage != null)
+            {
+                if (InventoryUtil.tryPutItems(storage, craftingResults))
+                {
                     hasCrafted = true;
                 }
             }

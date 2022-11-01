@@ -101,8 +101,8 @@ public class InventoryUtil
         return copy;
     }
 
-	@SuppressWarnings("UnstableApiUsage")
-	public static boolean tryTakeItems(Storage<ItemVariant> storage, List<ItemStack> stacks, boolean simulate)
+    @SuppressWarnings("UnstableApiUsage")
+    public static boolean tryTakeItems(Storage<ItemVariant> storage, List<ItemStack> stacks, boolean simulate)
     {
         stacks = deepCopy(stacks);
 
@@ -150,6 +150,24 @@ public class InventoryUtil
             }
 
             return false;
+        }
+    }
+
+    @SuppressWarnings("UnstableApiUsage")
+    public static boolean tryPutItems(Storage<ItemVariant> storage, List<ItemStack> stacks)
+    {
+        try (Transaction transaction = Transaction.openOuter())
+        {
+            for (ItemStack stack : stacks)
+            {
+                if (storage.insert(ItemVariant.of(stack), stack.getCount(), transaction) < stack.getCount())
+                {
+                    return false;
+                }
+            }
+
+            transaction.commit();
+            return true;
         }
     }
 
