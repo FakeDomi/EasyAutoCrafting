@@ -81,7 +81,7 @@ public class CraftingDropper
         {
             List<ItemStack> craftingResults = new ArrayList<>();
 
-            addToMergedItemStackList(craftingResults, recipe.craft(craftingInventory));
+            addToMergedItemStackList(craftingResults, recipe.craft(craftingInventory, world.getRegistryManager()));
 
             for (ItemStack remainingStack : recipe.getRemainder(craftingInventory))
             {
