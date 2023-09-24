@@ -15,6 +15,7 @@ public class EasyAutoCrafting implements ModInitializer
         {
             if (success)
             {
+                //noinspection UnstableApiUsage
                 server.getWorlds().forEach(
                     w -> ((LoadedChunksCache)w).fabric_getLoadedChunks().forEach(
                         c -> c.getBlockEntities().values().stream()

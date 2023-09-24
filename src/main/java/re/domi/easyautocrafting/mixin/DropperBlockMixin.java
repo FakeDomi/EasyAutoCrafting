@@ -21,9 +21,9 @@ import re.domi.easyautocrafting.CraftingDropper;
 public class DropperBlockMixin extends Block
 {
     @Inject(method = "dispense", at = @At("HEAD"), cancellable = true)
-    protected void eac_dispense(ServerWorld world, BlockPos pos, CallbackInfo ci)
+    protected void eac_dispense(ServerWorld world, BlockState state, BlockPos pos, CallbackInfo ci)
     {
-        CraftingDropper.dispense(world, pos, ci);
+        CraftingDropper.dispense(world, state, pos, ci);
     }
 
     @Override

@@ -4,6 +4,7 @@ import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.DispenserBlock;
 import net.minecraft.block.dispenser.ItemDispenserBehavior;
@@ -13,9 +14,10 @@ import net.minecraft.inventory.CraftingInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.recipe.CraftingRecipe;
+import net.minecraft.recipe.RecipeEntry;
 import net.minecraft.recipe.RecipeType;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPointerImpl;
+import net.minecraft.util.math.BlockPointer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -29,7 +31,7 @@ import static net.minecraft.util.math.Direction.*;
 public class CraftingDropper
 {
     @SuppressWarnings("UnstableApiUsage")
-    public static void dispense(ServerWorld world, BlockPos dispenserPos, CallbackInfo ci)
+    public static void dispense(ServerWorld world, BlockState dispenserState, BlockPos dispenserPos, CallbackInfo ci)
     {
         if (!hasTableNextToBlock(world, dispenserPos))
         {
@@ -38,7 +40,7 @@ public class CraftingDropper
 
         ci.cancel();
 
-        Direction facing = world.getBlockState(dispenserPos).get(DispenserBlock.FACING);
+        Direction facing = dispenserState.get(DispenserBlock.FACING);
 
         DropperBlockEntity dropper = (DropperBlockEntity)world.getBlockEntity(dispenserPos);
         List<ItemStack> ingredients = new ArrayList<>(9);
@@ -71,7 +73,9 @@ public class CraftingDropper
         if (!InventoryUtil.itemStackListsEqual(cache.eac_getIngredients(), craftingInventoryItems)
             || recipe != null && !recipe.matches(craftingInventory, world))
         {
-            recipe = world.getRecipeManager().getFirstMatch(RecipeType.CRAFTING, craftingInventory, world).orElse(null);
+            RecipeEntry<CraftingRecipe> entry = world.getRecipeManager().getFirstMatch(RecipeType.CRAFTING, craftingInventory, world).orElse(null);
+
+            recipe = entry == null ? null : entry.value();
 
             cache.eac_setRecipe(recipe);
             cache.eac_setIngredients(craftingInventoryItems);
@@ -111,7 +115,7 @@ public class CraftingDropper
             {
                 for (ItemStack craftingResult : craftingResults)
                 {
-                    ItemDispenserBehavior.spawnItem(world, craftingResult, 6, facing, DispenserBlock.getOutputLocation(new BlockPointerImpl(world, dispenserPos)));
+                    ItemDispenserBehavior.spawnItem(world, craftingResult, 6, facing, DispenserBlock.getOutputLocation(new BlockPointer(world, dispenserPos, dispenserState, dropper)));
                 }
 
                 world.syncWorldEvent(1000, dispenserPos, 0);
