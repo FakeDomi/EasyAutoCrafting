@@ -71,9 +71,9 @@ public class CraftingDropper
         List<ItemStack> craftingInventoryItems = ((CraftingInventoryMixin)craftingInventory).getStacks();
 
         if (!InventoryUtil.itemStackListsEqual(cache.eac_getIngredients(), craftingInventoryItems)
-            || recipe != null && !recipe.matches(craftingInventory, world))
+            || recipe != null && !recipe.matches(craftingInventory.createRecipeInput(), world))
         {
-            RecipeEntry<CraftingRecipe> entry = world.getRecipeManager().getFirstMatch(RecipeType.CRAFTING, craftingInventory, world).orElse(null);
+            RecipeEntry<CraftingRecipe> entry = world.getRecipeManager().getFirstMatch(RecipeType.CRAFTING, craftingInventory.createRecipeInput(), world).orElse(null);
 
             recipe = entry == null ? null : entry.value();
 
@@ -85,9 +85,9 @@ public class CraftingDropper
         {
             List<ItemStack> craftingResults = new ArrayList<>();
 
-            addToMergedItemStackList(craftingResults, recipe.craft(craftingInventory, world.getRegistryManager()));
+            addToMergedItemStackList(craftingResults, recipe.craft(craftingInventory.createRecipeInput(), world.getRegistryManager()));
 
-            for (ItemStack remainingStack : recipe.getRemainder(craftingInventory))
+            for (ItemStack remainingStack : recipe.getRemainder(craftingInventory.createRecipeInput()))
             {
                 addToMergedItemStackList(craftingResults, remainingStack);
             }
