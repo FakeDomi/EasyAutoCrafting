@@ -23,7 +23,7 @@ public class InventoryUtil
 {
     public static boolean itemsEqual(ItemStack first, ItemStack second)
     {
-        return first == second || first.getItem() == second.getItem() && (Objects.equals(first.getNbt(), second.getNbt()));
+        return first == second || first.getItem() == second.getItem() && (Objects.equals(first.getComponents(), second.getComponents()));
     }
 
     public static boolean itemStackListsEqual(List<ItemStack> first, List<ItemStack> second)
