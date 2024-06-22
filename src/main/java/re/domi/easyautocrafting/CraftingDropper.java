@@ -30,7 +30,6 @@ import static net.minecraft.util.math.Direction.*;
 
 public class CraftingDropper
 {
-    @SuppressWarnings("UnstableApiUsage")
     public static void dispense(ServerWorld world, BlockState dispenserState, BlockPos dispenserPos, CallbackInfo ci)
     {
         if (!hasTableNextToBlock(world, dispenserPos))

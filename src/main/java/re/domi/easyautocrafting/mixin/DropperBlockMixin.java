@@ -16,7 +16,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import re.domi.easyautocrafting.CraftingDropper;
 
-@SuppressWarnings("deprecation")
 @Mixin(value = DropperBlock.class, priority = 1500)
 public class DropperBlockMixin extends Block
 {
