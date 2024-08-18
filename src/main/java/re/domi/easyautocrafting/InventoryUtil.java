@@ -207,51 +207,59 @@ public class InventoryUtil
         return false;
     }
 
-    private static boolean putItemsToSlot(Inventory inventory, @Nullable SidedInventory sidedInventory, int slot, List<ItemStack> stacks, Direction side, boolean simulate, boolean considerEmptySlots)
+    private static boolean putItemsToSlot(Inventory inventory, @Nullable SidedInventory sidedInventory, int slot, List<ItemStack> stacks, Direction side, boolean simulate, boolean useEmptySlots)
     {
         ItemStack stackInSlot = inventory.getStack(slot);
-
         Iterator<ItemStack> stacksIterator = stacks.iterator();
 
-        while (stacksIterator.hasNext())
+        if (useEmptySlots)
         {
-            ItemStack currentStack = stacksIterator.next();
-
-            if (considerEmptySlots && stackInSlot.isEmpty())
+            if (stackInSlot.isEmpty())
             {
-                if (inventory.isValid(slot, currentStack) && (sidedInventory == null || sidedInventory.canInsert(slot, currentStack, side)))
+                while (stacksIterator.hasNext())
                 {
-                    stackInSlot = currentStack;
+                    ItemStack currentStack = stacksIterator.next();
 
-                    if (!simulate)
+                    if (inventory.isValid(slot, currentStack) && (sidedInventory == null || sidedInventory.canInsert(slot, currentStack, side)))
                     {
-                        inventory.setStack(slot, currentStack);
-                    }
+                        if (!simulate)
+                        {
+                            inventory.setStack(slot, currentStack);
+                        }
 
-                    stacksIterator.remove();
-                }
-            }
-            else if (itemsEqual(currentStack, stackInSlot))
-            {
-                int totalCount = currentStack.getCount() + stackInSlot.getCount();
-                int maxCount = Math.min(inventory.getMaxCountPerStack(), currentStack.getMaxCount());
-                int remainingCount = Math.max(0, totalCount - maxCount);
-
-                if (inventory.isValid(slot, currentStack) && (sidedInventory == null || sidedInventory.canInsert(slot, currentStack, side)))
-                {
-                    if (!simulate)
-                    {
-                        stackInSlot.setCount(remainingCount == 0 ? totalCount : maxCount);
-                        inventory.setStack(slot, stackInSlot);
-                    }
-
-                    if (remainingCount == 0)
-                    {
                         stacksIterator.remove();
                     }
-                    else
+                }
+            }
+        }
+        else
+        {
+            while (stacksIterator.hasNext())
+            {
+                ItemStack currentStack = stacksIterator.next();
+
+                if (itemsEqual(currentStack, stackInSlot))
+                {
+                    int totalCount = currentStack.getCount() + stackInSlot.getCount();
+                    int maxCount = Math.min(inventory.getMaxCountPerStack(), currentStack.getMaxCount());
+                    int remainingCount = Math.max(0, totalCount - maxCount);
+
+                    if (inventory.isValid(slot, currentStack) && (sidedInventory == null || sidedInventory.canInsert(slot, currentStack, side)))
                     {
-                        currentStack.setCount(remainingCount);
+                        if (!simulate)
+                        {
+                            stackInSlot.setCount(remainingCount == 0 ? totalCount : maxCount);
+                            inventory.setStack(slot, stackInSlot);
+                        }
+
+                        if (remainingCount == 0)
+                        {
+                            stacksIterator.remove();
+                        }
+                        else
+                        {
+                            currentStack.setCount(remainingCount);
+                        }
                     }
                 }
             }
