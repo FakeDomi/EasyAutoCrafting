@@ -45,7 +45,7 @@ public class Config
         }
         catch (IOException e)
         {
-            e.printStackTrace();
+            EasyAutoCrafting.LOGGER.error("Cannot read configuration file:", e);
         }
     }
 
@@ -63,7 +63,7 @@ public class Config
         }
         catch (IOException e)
         {
-            e.printStackTrace();
+            EasyAutoCrafting.LOGGER.error("Cannot write configuration file:", e);
         }
     }
 }

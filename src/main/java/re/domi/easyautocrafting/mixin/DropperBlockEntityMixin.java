@@ -31,6 +31,7 @@ public class DropperBlockEntityMixin extends DispenserBlockEntity implements Dro
         return super.isValid(slot, stack);
     }
 
+    @SuppressWarnings({ "UnresolvedMixinReference", "MixinAnnotationTarget" })
     @Inject(method = { "isValid", "method_5437" }, at = @At("HEAD"), cancellable = true, remap = false)
     public void eac_isValid(int slot, ItemStack stack, CallbackInfoReturnable<Boolean> cir)
     {

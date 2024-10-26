@@ -83,7 +83,7 @@ public class InventoryUtil
                 BlockPos checkPos = center.offset(first, a).offset(second, b);
                 Storage<ItemVariant> storage = ItemStorage.SIDED.find(world, checkPos, extractionSide);
 
-                if(storage != null)
+                if (storage != null)
                 {
                     storages.add(storage);
                 }

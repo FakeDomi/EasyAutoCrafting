@@ -53,8 +53,8 @@ public class CraftingDropper
         }
 
         Storage<ItemVariant> ingredientStorage = Config.enable3x3InventorySearching ?
-                InventoryUtil.getMerged3x3Storage(world, dispenserPos.offset(facing.getOpposite()), facing) :
-                ItemStorage.SIDED.find(world, dispenserPos.offset(facing.getOpposite()), facing);
+            InventoryUtil.getMerged3x3Storage(world, dispenserPos.offset(facing.getOpposite()), facing) :
+            ItemStorage.SIDED.find(world, dispenserPos.offset(facing.getOpposite()), facing);
 
         boolean patternMode = ingredientStorage != null;
 
@@ -86,7 +86,7 @@ public class CraftingDropper
 
             addToMergedItemStackList(craftingResults, recipe.craft(craftingInventory.createRecipeInput(), world.getRegistryManager()));
 
-            for (ItemStack remainingStack : recipe.getRemainder(craftingInventory.createRecipeInput()))
+            for (ItemStack remainingStack : recipe.getRecipeRemainders(craftingInventory.createRecipeInput()))
             {
                 addToMergedItemStackList(craftingResults, remainingStack);
             }

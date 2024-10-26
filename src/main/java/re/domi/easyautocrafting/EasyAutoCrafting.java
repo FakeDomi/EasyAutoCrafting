@@ -3,9 +3,13 @@ package re.domi.easyautocrafting;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.impl.event.lifecycle.LoadedChunksCache;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class EasyAutoCrafting implements ModInitializer
 {
+    public static final Logger LOGGER = LoggerFactory.getLogger("easyautocrafting");
+
     @Override
     public void onInitialize()
     {
